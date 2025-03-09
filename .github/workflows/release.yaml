@@ -1,0 +1,42 @@
+name: Tag Management
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - 'master'
+
+jobs:
+  handle-tag:
+    name: Handle Tag Creation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if CHANGELOG was modified
+        id: check-changelog
+        run: |
+          CHANGELOG_MODIFIED=$(.github/scripts/changelog.sh check-changelog)
+          echo "changelog_modified=$CHANGELOG_MODIFIED" >> $GITHUB_OUTPUT
+
+      - name: Get version from CHANGELOG
+        if: steps.check-changelog.outputs.changelog_modified == 'true'
+        id: get-version
+        run: |
+          VERSION=$(.github/scripts/changelog.sh get-version)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Handle tag creation
+        if: steps.check-changelog.outputs.changelog_modified == 'true'
+        run: |
+          # If branch is master, create and push tag. Otherwise, dry run
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            .github/scripts/changelog.sh create-tag "${{ steps.get-version.outputs.version }}" "false"
+          else
+            .github/scripts/changelog.sh create-tag "${{ steps.get-version.outputs.version }}" "true"
+          fi
