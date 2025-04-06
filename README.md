@@ -7,6 +7,7 @@ An opinionated slog handler.
 - JSON logging with customizable attributes
 - Configurable output, log level, and source inclusion
 - Contextual logging support
+- No external dependencies
 
 ## Installation
 
@@ -52,7 +53,6 @@ func main() {
 }
 ```
 
-
 ### Custom Options
 
 You can customize the logger by providing options:
@@ -93,8 +93,13 @@ import (
 
 func main() {
     logger := alog.Logger()
-    ctx := alog.Append(context.Background(), "request_id", "12345")
-    logger.InfoContext(ctx, "This is an info message with context")
+    
+    // Add values to context
+    ctx := alog.Append(context.Background(), slog.String("request_id", "12345"))
+    ctx = alog.Append(ctx, slog.Int("count", 42))
+    
+    // Log with context
+    logger.InfoContext(ctx, "Processing request")
 }
 ```
 

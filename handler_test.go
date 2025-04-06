@@ -20,7 +20,8 @@ func TestLogger(t *testing.T) {
 		alog.WithAttrs(slog.Attr{Key: "logger", Value: slog.StringValue("alog")}),
 	)
 
-	ctx := alog.Append(nil, "key", "value") //nolint:staticcheck
+	ctx := alog.Append(nil, slog.String("key", "value")) //nolint:staticcheck
+	ctx = alog.Append(ctx, slog.Int64("count", 42))
 
 	// act
 	logger.InfoContext(ctx, "test message")
@@ -31,4 +32,5 @@ func TestLogger(t *testing.T) {
 	require.Contains(t, output, `"severity":"info"`)
 	require.Contains(t, output, `"logger":"alog"`)
 	require.Contains(t, output, `"key":"value"`)
+	require.Contains(t, output, `"count":42`)
 }
